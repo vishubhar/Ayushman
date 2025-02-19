@@ -2,6 +2,12 @@ import React, { useState } from "react";
 import AayushmanImage from "./Images/Aayushman.png";
 
 function App() {
+  // Personal info state
+  const [name, setName] = useState("");
+  const [aadhar, setAadhar] = useState("");
+  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
+
   // Main survey states
   const [hasCard, setHasCard] = useState(null);
   const [siteStatus, setSiteStatus] = useState(null);
@@ -23,6 +29,24 @@ function App() {
     [null, null, null],
     [null, null, null],
   ]);
+
+  // Button styling objects
+  const defaultButtonStyle = {
+    padding: "10px 20px",
+    margin: "5px",
+    border: "1px solid #ccc",
+    borderRadius: "4px",
+    background: "#f0f0f0",
+    cursor: "pointer",
+    fontSize: "1rem",
+  };
+
+  const selectedButtonStyle = {
+    ...defaultButtonStyle,
+    background: "#007BFF",
+    color: "#fff",
+    border: "1px solid #007BFF",
+  };
 
   // Handlers for main questions
   const handleWhyNotAnswer = (index, answer) => {
@@ -51,17 +75,59 @@ function App() {
     setAwarenessSubs(updatedSubs);
   };
 
-  const handleSubmit = (e) => {
+  // Reset all form fields
+  const resetForm = () => {
+    setName("");
+    setAadhar("");
+    setAddress("");
+    setPhone("");
+    setHasCard(null);
+    setSiteStatus(null);
+    setWhyNotAnswers([null, null, null]);
+    setWhyNotSubs([
+      [null, null, null],
+      [null, null, null],
+      [null, null, null],
+    ]);
+    setAwarenessAnswers([null, null, null]);
+    setAwarenessSubs([
+      [null, null, null],
+      [null, null, null],
+      [null, null, null],
+    ]);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Healthcare Survey Responses:", {
+    const data = {
+      name,
+      aadhar,
+      address,
+      phone,
       hasCard,
       siteStatus,
       whyNotAnswers,
       whyNotSubs,
       awarenessAnswers,
       awarenessSubs,
-    });
-    alert("Thank you for completing the survey!");
+    };
+
+    try {
+      await fetch(
+        "https://script.google.com/macros/s/AKfycby2qz8e2PZnfDqrSckrMDSMdZXeF2Og92w_z32Ix8c6GwQJHLv8oA9czTPkWhdB3M2a/exec",
+        {
+          method: "POST",
+          mode: "no-cors", // For development: bypasses CORS (response will be opaque)
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }
+      );
+      alert("Thank you for completing the survey!");
+      resetForm();
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Submission failed. Please try again.");
+    }
   };
 
   return (
@@ -75,8 +141,71 @@ function App() {
         alignItems: "center",
         justifyContent: "center",
         padding: "20px",
+        flexDirection: "column",
       }}
     >
+      <h1
+        style={{
+          fontSize: "2rem",
+          textAlign: "center",
+          color: "#000",
+          marginBottom: "20px",
+        }}
+      >
+        Ayushman Bharat <br />
+        <sub style={{ fontSize: "1rem" }}>Healthcare Survey</sub>
+      </h1>
+
+      {/* Personal Info Section */}
+      <div
+        style={{
+          background: "#fff",
+          padding: "20px",
+          borderRadius: "4px",
+          marginBottom: "20px",
+          maxWidth: "600px",
+          width: "100%",
+        }}
+      >
+        <div style={{ marginBottom: "10px" }}>
+          <label>Name: </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            style={{ width: "90%", padding: "8px" }}
+          />
+        </div>
+        <div style={{ marginBottom: "10px" }}>
+          <label>Aadhar Number: </label>
+          <input
+            type="text"
+            value={aadhar}
+            onChange={(e) => setAadhar(e.target.value)}
+            style={{ width: "90%", padding: "8px" }}
+          />
+        </div>
+        <div style={{ marginBottom: "10px" }}>
+          <label>Address: </label>
+          <input
+            type="text"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            style={{ width: "90%", padding: "8px" }}
+          />
+        </div>
+        <div style={{ marginBottom: "10px" }}>
+          <label>Phone No: </label>
+          <input
+            type="text"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            style={{ width: "90%", padding: "8px" }}
+          />
+        </div>
+      </div>
+
+      {/* Survey Form */}
       <form
         onSubmit={handleSubmit}
         style={{
@@ -88,17 +217,21 @@ function App() {
           fontFamily: "Arial, sans-serif",
         }}
       >
-        <h1 style={{ fontSize: "1.5rem", textAlign: "center" }}>
-          Ayushman Bharat Healthcare Survey
-        </h1>
-
         {/* Q1: Ayushman Card */}
         <div style={{ marginBottom: "20px" }}>
           <p>Do you have an Ayushman Bharat Card?</p>
-          <button type="button" onClick={() => setHasCard(true)}>
+          <button
+            type="button"
+            onClick={() => setHasCard(true)}
+            style={hasCard === true ? selectedButtonStyle : defaultButtonStyle}
+          >
             Yes
-          </button>{" "}
-          <button type="button" onClick={() => setHasCard(false)}>
+          </button>
+          <button
+            type="button"
+            onClick={() => setHasCard(false)}
+            style={hasCard === false ? selectedButtonStyle : defaultButtonStyle}
+          >
             No
           </button>
         </div>
@@ -115,10 +248,26 @@ function App() {
             {/* Q2: Onsite benefits */}
             <div style={{ marginBottom: "20px" }}>
               <p>Did you avail the onsite healthcare benefits?</p>
-              <button type="button" onClick={() => setSiteStatus("Onsite")}>
+              <button
+                type="button"
+                onClick={() => setSiteStatus("Onsite")}
+                style={
+                  siteStatus === "Onsite"
+                    ? selectedButtonStyle
+                    : defaultButtonStyle
+                }
+              >
                 Onsite
-              </button>{" "}
-              <button type="button" onClick={() => setSiteStatus("Didn't")}>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSiteStatus("Didn't")}
+                style={
+                  siteStatus === "Didn't"
+                    ? selectedButtonStyle
+                    : defaultButtonStyle
+                }
+              >
                 Didn't
               </button>
             </div>
@@ -138,12 +287,22 @@ function App() {
                     <button
                       type="button"
                       onClick={() => handleWhyNotAnswer(i, "Yes")}
+                      style={
+                        whyNotAnswers[i] === "Yes"
+                          ? selectedButtonStyle
+                          : defaultButtonStyle
+                      }
                     >
                       Yes
-                    </button>{" "}
+                    </button>
                     <button
                       type="button"
                       onClick={() => handleWhyNotAnswer(i, "No")}
+                      style={
+                        whyNotAnswers[i] === "No"
+                          ? selectedButtonStyle
+                          : defaultButtonStyle
+                      }
                     >
                       No
                     </button>
@@ -154,12 +313,22 @@ function App() {
                         <button
                           type="button"
                           onClick={() => handleWhyNotSubAnswer(i, 0, "Yes")}
+                          style={
+                            whyNotSubs[i][0] === "Yes"
+                              ? selectedButtonStyle
+                              : defaultButtonStyle
+                          }
                         >
                           Yes
-                        </button>{" "}
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleWhyNotSubAnswer(i, 0, "No")}
+                          style={
+                            whyNotSubs[i][0] === "No"
+                              ? selectedButtonStyle
+                              : defaultButtonStyle
+                          }
                         >
                           No
                         </button>
@@ -169,12 +338,22 @@ function App() {
                         <button
                           type="button"
                           onClick={() => handleWhyNotSubAnswer(i, 1, "Yes")}
+                          style={
+                            whyNotSubs[i][1] === "Yes"
+                              ? selectedButtonStyle
+                              : defaultButtonStyle
+                          }
                         >
                           Yes
-                        </button>{" "}
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleWhyNotSubAnswer(i, 1, "No")}
+                          style={
+                            whyNotSubs[i][1] === "No"
+                              ? selectedButtonStyle
+                              : defaultButtonStyle
+                          }
                         >
                           No
                         </button>
@@ -185,12 +364,22 @@ function App() {
                         <button
                           type="button"
                           onClick={() => handleWhyNotSubAnswer(i, 2, "Yes")}
+                          style={
+                            whyNotSubs[i][2] === "Yes"
+                              ? selectedButtonStyle
+                              : defaultButtonStyle
+                          }
                         >
                           Yes
-                        </button>{" "}
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleWhyNotSubAnswer(i, 2, "No")}
+                          style={
+                            whyNotSubs[i][2] === "No"
+                              ? selectedButtonStyle
+                              : defaultButtonStyle
+                          }
                         >
                           No
                         </button>
@@ -210,16 +399,25 @@ function App() {
                     <button
                       type="button"
                       onClick={() => handleAwarenessAnswer(i, "Yes")}
+                      style={
+                        awarenessAnswers[i] === "Yes"
+                          ? selectedButtonStyle
+                          : defaultButtonStyle
+                      }
                     >
                       Yes
-                    </button>{" "}
+                    </button>
                     <button
                       type="button"
                       onClick={() => handleAwarenessAnswer(i, "No")}
+                      style={
+                        awarenessAnswers[i] === "No"
+                          ? selectedButtonStyle
+                          : defaultButtonStyle
+                      }
                     >
                       No
                     </button>
-                    {/* Show subsidiary questions only if "Yes" is chosen */}
                     {awarenessAnswers[i] === "Yes" && (
                       <div style={{ marginLeft: "20px", marginTop: "10px" }}>
                         <p>
@@ -229,12 +427,22 @@ function App() {
                         <button
                           type="button"
                           onClick={() => handleAwarenessSubAnswer(i, 0, "Yes")}
+                          style={
+                            awarenessSubs[i][0] === "Yes"
+                              ? selectedButtonStyle
+                              : defaultButtonStyle
+                          }
                         >
                           Yes
-                        </button>{" "}
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleAwarenessSubAnswer(i, 0, "No")}
+                          style={
+                            awarenessSubs[i][0] === "No"
+                              ? selectedButtonStyle
+                              : defaultButtonStyle
+                          }
                         >
                           No
                         </button>
@@ -245,12 +453,22 @@ function App() {
                         <button
                           type="button"
                           onClick={() => handleAwarenessSubAnswer(i, 1, "Yes")}
+                          style={
+                            awarenessSubs[i][1] === "Yes"
+                              ? selectedButtonStyle
+                              : defaultButtonStyle
+                          }
                         >
                           Yes
-                        </button>{" "}
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleAwarenessSubAnswer(i, 1, "No")}
+                          style={
+                            awarenessSubs[i][1] === "No"
+                              ? selectedButtonStyle
+                              : defaultButtonStyle
+                          }
                         >
                           No
                         </button>
@@ -261,12 +479,22 @@ function App() {
                         <button
                           type="button"
                           onClick={() => handleAwarenessSubAnswer(i, 2, "Yes")}
+                          style={
+                            awarenessSubs[i][2] === "Yes"
+                              ? selectedButtonStyle
+                              : defaultButtonStyle
+                          }
                         >
                           Yes
-                        </button>{" "}
+                        </button>
                         <button
                           type="button"
                           onClick={() => handleAwarenessSubAnswer(i, 2, "No")}
+                          style={
+                            awarenessSubs[i][2] === "No"
+                              ? selectedButtonStyle
+                              : defaultButtonStyle
+                          }
                         >
                           No
                         </button>
@@ -277,7 +505,12 @@ function App() {
               </>
             )}
 
-            <button type="submit">Submit</button>
+            <button
+              type="submit"
+              style={{ ...defaultButtonStyle, marginTop: "20px" }}
+            >
+              Submit
+            </button>
           </>
         )}
       </form>
