@@ -510,7 +510,7 @@ function App() {
 
             <button
               type="submit"
-              style={{ ...defaultButtonStyle, marginTop: "20px" }}
+              style={{ ...selectedButtonStyle, marginTop: "20px" }}
             >
               Submit
             </button>
