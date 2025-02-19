@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AayushmanImage from "./Images/Aayushman.png";
 
 function App() {
+  useEffect(() => {
+    document.title = "Ayushman Bharat Survey";
+  }, []);
   // Personal info state
   const [name, setName] = useState("");
   const [aadhar, setAadhar] = useState("");
