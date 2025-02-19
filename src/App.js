@@ -5,17 +5,27 @@ function App() {
   useEffect(() => {
     document.title = "Ayushman Bharat Survey";
   }, []);
+
   // Personal info state
   const [name, setName] = useState("");
   const [aadhar, setAadhar] = useState("");
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
 
+  // Error states for validations
+  const [nameError, setNameError] = useState("");
+  const [aadharError, setAadharError] = useState("");
+  const [addressError, setAddressError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+
+  // Loading state for submission
+  const [isLoading, setIsLoading] = useState(false);
+
   // Main survey states
   const [hasCard, setHasCard] = useState(null);
   const [siteStatus, setSiteStatus] = useState(null);
 
-  // For the "Why not" section main questions (3 healthcare-related questions)
+  // For the "Why not" section main questions
   const [whyNotAnswers, setWhyNotAnswers] = useState([null, null, null]);
   // For the subsidiary questions under "Why not"
   const [whyNotSubs, setWhyNotSubs] = useState([
@@ -24,7 +34,7 @@ function App() {
     [null, null, null],
   ]);
 
-  // For the "Awareness" section main questions (3 healthcare-related questions)
+  // For the "Awareness" section main questions
   const [awarenessAnswers, setAwarenessAnswers] = useState([null, null, null]);
   // For the subsidiary questions under "Awareness"
   const [awarenessSubs, setAwarenessSubs] = useState([
@@ -51,7 +61,48 @@ function App() {
     border: "1px solid #007BFF",
   };
 
-  // Handlers for main questions
+  // Real-time validation handlers for personal info
+  const handleNameChange = (e) => {
+    const value = e.target.value;
+    setName(value);
+    if (value.trim().length >= 4) {
+      setNameError("");
+    } else {
+      setNameError("Name must be at least 4 characters long.");
+    }
+  };
+
+  const handleAadharChange = (e) => {
+    const value = e.target.value;
+    setAadhar(value);
+    if (/^\d{16}$/.test(value.trim())) {
+      setAadharError("");
+    } else {
+      setAadharError("Aadhar must be exactly 16 digits.");
+    }
+  };
+
+  const handleAddressChange = (e) => {
+    const value = e.target.value;
+    setAddress(value);
+    if (value.trim() !== "") {
+      setAddressError("");
+    } else {
+      setAddressError("Address is required.");
+    }
+  };
+
+  const handlePhoneChange = (e) => {
+    const value = e.target.value;
+    setPhone(value);
+    if (/^\d{10}$/.test(value.trim())) {
+      setPhoneError("");
+    } else {
+      setPhoneError("Phone number must be exactly 10 digits.");
+    }
+  };
+
+  // Handlers for survey questions
   const handleWhyNotAnswer = (index, answer) => {
     const updated = [...whyNotAnswers];
     updated[index] = answer;
@@ -64,21 +115,19 @@ function App() {
     setAwarenessAnswers(updated);
   };
 
-  // Handlers for subsidiary questions under Why not
   const handleWhyNotSubAnswer = (questionIndex, subIndex, answer) => {
     const updatedSubs = [...whyNotSubs];
     updatedSubs[questionIndex][subIndex] = answer;
     setWhyNotSubs(updatedSubs);
   };
 
-  // Handlers for subsidiary questions under Awareness
   const handleAwarenessSubAnswer = (questionIndex, subIndex, answer) => {
     const updatedSubs = [...awarenessSubs];
     updatedSubs[questionIndex][subIndex] = answer;
     setAwarenessSubs(updatedSubs);
   };
 
-  // Reset all form fields
+  // Reset all form fields and error messages
   const resetForm = () => {
     setName("");
     setAadhar("");
@@ -98,15 +147,51 @@ function App() {
       [null, null, null],
       [null, null, null],
     ]);
+    setNameError("");
+    setAadharError("");
+    setAddressError("");
+    setPhoneError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    let valid = true;
+
+    // Validate name
+    if (name.trim().length < 4) {
+      setNameError("Name must be at least 4 characters long.");
+      valid = false;
+    }
+    // Validate aadhar
+    if (!/^\d{16}$/.test(aadhar.trim())) {
+      setAadharError("Aadhar must be exactly 16 digits.");
+      valid = false;
+    }
+    // Validate address
+    if (address.trim() === "") {
+      setAddressError("Address is required.");
+      valid = false;
+    }
+    // Validate phone
+    if (!/^\d{10}$/.test(phone.trim())) {
+      setPhoneError("Phone number must be exactly 10 digits.");
+      valid = false;
+    }
+
+    if (!valid) return;
+
+    // Set loading state
+    setIsLoading(true);
+
+    // Auto prefix phone with +91
+    const phoneWithPrefix = "+91" + phone.trim();
+
     const data = {
       name,
       aadhar,
       address,
-      phone,
+      phone: phoneWithPrefix,
       hasCard,
       siteStatus,
       whyNotAnswers,
@@ -130,6 +215,8 @@ function App() {
     } catch (error) {
       console.error("Error:", error);
       alert("Submission failed. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -170,41 +257,57 @@ function App() {
           width: "100%",
         }}
       >
-        <div style={{ marginBottom: "10px" }}>
+        <div style={{ marginBottom: "5px" }}>
           <label>Name: </label>
           <input
             type="text"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={handleNameChange}
             style={{ width: "90%", padding: "8px" }}
           />
+          {nameError && (
+            <div style={{ color: "red", fontSize: "0.8rem" }}>{nameError}</div>
+          )}
         </div>
-        <div style={{ marginBottom: "10px" }}>
+        <div style={{ marginBottom: "5px" }}>
           <label>Aadhar Number: </label>
           <input
             type="text"
             value={aadhar}
-            onChange={(e) => setAadhar(e.target.value)}
+            onChange={handleAadharChange}
             style={{ width: "90%", padding: "8px" }}
           />
+          {aadharError && (
+            <div style={{ color: "red", fontSize: "0.8rem" }}>
+              {aadharError}
+            </div>
+          )}
         </div>
-        <div style={{ marginBottom: "10px" }}>
+        <div style={{ marginBottom: "5px" }}>
           <label>Address: </label>
           <input
             type="text"
             value={address}
-            onChange={(e) => setAddress(e.target.value)}
+            onChange={handleAddressChange}
             style={{ width: "90%", padding: "8px" }}
           />
+          {addressError && (
+            <div style={{ color: "red", fontSize: "0.8rem" }}>
+              {addressError}
+            </div>
+          )}
         </div>
-        <div style={{ marginBottom: "10px" }}>
+        <div style={{ marginBottom: "5px" }}>
           <label>Phone No: </label>
           <input
             type="text"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={handlePhoneChange}
             style={{ width: "90%", padding: "8px" }}
           />
+          {phoneError && (
+            <div style={{ color: "red", fontSize: "0.8rem" }}>{phoneError}</div>
+          )}
         </div>
       </div>
 
@@ -220,7 +323,7 @@ function App() {
           fontFamily: "Arial, sans-serif",
         }}
       >
-        {/* Q1: Ayushman Card */}
+        {/* Q1: Ayushman Bharat Card */}
         <div style={{ marginBottom: "20px" }}>
           <p>Do you have an Ayushman Bharat Card?</p>
           <button
@@ -239,7 +342,6 @@ function App() {
           </button>
         </div>
 
-        {/* If "No" for card, only show thank-you */}
         {hasCard === false && (
           <div style={{ marginBottom: "20px" }}>
             <p>Thank you for visiting!</p>
@@ -279,7 +381,7 @@ function App() {
 
             {siteStatus === "Onsite" && (
               <>
-                {/* Why not Section (Healthcare Questions) */}
+                {/* Why not Section */}
                 <h2>Why not (Healthcare Issues)</h2>
                 {[0, 1, 2].map((i) => (
                   <div key={`whyNot-${i}`} style={{ marginBottom: "10px" }}>
@@ -309,10 +411,9 @@ function App() {
                     >
                       No
                     </button>
-                    {/* Show subsidiary questions only if "Yes" is chosen */}
                     {whyNotAnswers[i] === "Yes" && (
                       <div style={{ marginLeft: "20px", marginTop: "10px" }}>
-                        <p>Sub Question 1: Do you have access to basic care?</p>
+                        <p>Sub Question 1: Access to basic care?</p>
                         <button
                           type="button"
                           onClick={() => handleWhyNotSubAnswer(i, 0, "Yes")}
@@ -335,9 +436,7 @@ function App() {
                         >
                           No
                         </button>
-                        <p>
-                          Sub Question 2: Are medical facilities well-equipped?
-                        </p>
+                        <p>Sub Question 2: Facilities well-equipped?</p>
                         <button
                           type="button"
                           onClick={() => handleWhyNotSubAnswer(i, 1, "Yes")}
@@ -360,10 +459,7 @@ function App() {
                         >
                           No
                         </button>
-                        <p>
-                          Sub Question 3: Do you feel safe at the healthcare
-                          centers?
-                        </p>
+                        <p>Sub Question 3: Feel safe at centers?</p>
                         <button
                           type="button"
                           onClick={() => handleWhyNotSubAnswer(i, 2, "Yes")}
@@ -391,13 +487,13 @@ function App() {
                   </div>
                 ))}
 
-                {/* Awareness Section (Healthcare Questions) */}
+                {/* Awareness Section */}
                 <h2>Awareness (Healthcare Issues)</h2>
                 {[0, 1, 2].map((i) => (
                   <div key={`awareness-${i}`} style={{ marginBottom: "10px" }}>
                     <p>
                       Question {i + 1}: Are you aware of any free healthcare
-                      schemes available in your area?
+                      schemes?
                     </p>
                     <button
                       type="button"
@@ -423,10 +519,7 @@ function App() {
                     </button>
                     {awarenessAnswers[i] === "Yes" && (
                       <div style={{ marginLeft: "20px", marginTop: "10px" }}>
-                        <p>
-                          Sub Question 1: Do you know how to register for these
-                          schemes?
-                        </p>
+                        <p>Sub Question 1: Know registration process?</p>
                         <button
                           type="button"
                           onClick={() => handleAwarenessSubAnswer(i, 0, "Yes")}
@@ -449,10 +542,7 @@ function App() {
                         >
                           No
                         </button>
-                        <p>
-                          Sub Question 2: Are you aware of any ongoing
-                          healthcare campaigns?
-                        </p>
+                        <p>Sub Question 2: Aware of ongoing campaigns?</p>
                         <button
                           type="button"
                           onClick={() => handleAwarenessSubAnswer(i, 1, "Yes")}
@@ -475,10 +565,7 @@ function App() {
                         >
                           No
                         </button>
-                        <p>
-                          Sub Question 3: Do you know where to get more
-                          information?
-                        </p>
+                        <p>Sub Question 3: Know where to get info?</p>
                         <button
                           type="button"
                           onClick={() => handleAwarenessSubAnswer(i, 2, "Yes")}
@@ -511,8 +598,9 @@ function App() {
             <button
               type="submit"
               style={{ ...selectedButtonStyle, marginTop: "20px" }}
+              disabled={isLoading}
             >
-              Submit
+              {isLoading ? "Submitting..." : "Submit"}
             </button>
           </>
         )}
