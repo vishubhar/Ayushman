@@ -75,10 +75,10 @@ function App() {
   const handleAadharChange = (e) => {
     const value = e.target.value;
     setAadhar(value);
-    if (/^\d{16}$/.test(value.trim())) {
+    if (/^\d{12}$/.test(value.trim())) {
       setAadharError("");
     } else {
-      setAadharError("Aadhar must be exactly 16 digits.");
+      setAadharError("Aadhar must be exactly 12 digits.");
     }
   };
 
@@ -164,8 +164,8 @@ function App() {
       valid = false;
     }
     // Validate aadhar
-    if (!/^\d{16}$/.test(aadhar.trim())) {
-      setAadharError("Aadhar must be exactly 16 digits.");
+    if (!/^\d{12}$/.test(aadhar.trim())) {
+      setAadharError("Aadhar must be exactly 12 digits.");
       valid = false;
     }
     // Validate address
